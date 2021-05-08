@@ -1,0 +1,160 @@
+{
+    "description": "BusinessHours",
+    "states": [
+      {
+        "name": "Trigger",
+        "type": "trigger",
+        "transitions": [
+          {
+            "event": "incomingMessage"
+          },
+          {
+            "next": "checkOpen",
+            "event": "incomingCall"
+          },
+          {
+            "event": "incomingRequest"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": -450,
+            "y": 30
+          }
+        }
+      },
+      {
+        "name": "checkOpen",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "IsOpen",
+            "event": "success"
+          },
+          {
+            "next": "Error",
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "",
+          "environment_sid": "",
+          "offset": {
+            "x": -410,
+            "y": 210
+          },
+          "function_sid": "",
+          "url": ""
+        }
+      },
+      {
+        "name": "IsOpen",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "Error",
+            "event": "noMatch"
+          },
+          {
+            "next": "Enqueue",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "True",
+                "arguments": [
+                  "{{widgets.checkOpen.parsed.Result}}"
+                ],
+                "type": "equal_to",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "next": "Guide",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "False",
+                "arguments": [
+                  "{{widgets.checkOpen.parsed.Result}}"
+                ],
+                "type": "equal_to",
+                "value": "false"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.checkOpen.parsed.Result}}",
+          "offset": {
+            "x": -270,
+            "y": 430
+          }
+        }
+      },
+      {
+        "name": "Guide",
+        "type": "say-play",
+        "transitions": [
+          {
+            "event": "audioComplete"
+          }
+        ],
+        "properties": {
+          "voice": "Polly.Mizuki",
+          "offset": {
+            "x": -110,
+            "y": 690
+          },
+          "loop": 3,
+          "say": "お電話ありがとうございます。ただいまのお時間は営業時間外となります。改めておかけ直しください。",
+          "language": "ja-JP"
+        }
+      },
+      {
+        "name": "Error",
+        "type": "say-play",
+        "transitions": [
+          {
+            "event": "audioComplete"
+          }
+        ],
+        "properties": {
+          "voice": "Polly.Mizuki",
+          "offset": {
+            "x": -800,
+            "y": 680
+          },
+          "loop": 1,
+          "say": "申し訳ございません。アプリケーションのエラーが発生しました。",
+          "language": "ja-JP"
+        }
+      },
+      {
+        "name": "Enqueue",
+        "type": "enqueue-call",
+        "transitions": [
+          {
+            "event": "callComplete"
+          },
+          {
+            "event": "failedToEnqueue"
+          },
+          {
+            "event": "callFailure"
+          }
+        ],
+        "properties": {
+          "queue_name": "Waiting",
+          "offset": {
+            "x": -450,
+            "y": 710
+          }
+        }
+      }
+    ],
+    "initial_state": "Trigger",
+    "flags": {
+      "allow_concurrent_calls": true
+    }
+  }
